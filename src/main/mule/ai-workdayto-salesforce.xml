@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+	http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+	http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+
+  <flow name="syncContractorFlow" doc:id="a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6">
+    <salesforce:query doc:name="Query Contractors" doc:id="b1c2d3e4-f5g6-h7i8-j9k0-l1m2n3o4p5" config-ref="Salesforce_Config">
+      <salesforce:salesforce-query>
+        <![CDATA[SELECT Id, Name, Status FROM Contractor__c]]>
+      </salesforce:salesforce-query>
+    </salesforce:query>
+    <ee:transform doc:name="Transform Message" doc:id="c1d2e3f4-g5h6-i7j8-k9l0-m1n2o3p4q5">
+      <ee:message>
+        <ee:set-payload>
+          <![CDATA[%dw 2.0
+output application/json
+---
+payload]]>
+        </ee:set-payload>
+      </ee:message>
+    </ee:transform>
+    <foreach doc:name="For Each Contractor" doc:id="d1e2f3g4-h5i6-j7k8-l9m0n1o2p3q4" collection="#[payload]">
+      <choice doc:name="Choice" doc:id="e1f2g3h4-i5j6-k7l8-m9n0o1p2q3">
+        <when expression="#[payload.Status == 'Added']">
+          <!-- Perform synchronization logic for added contractor -->
+          <logger level="INFO" doc:name="Logger" doc:id="f1g2h3i4-j5k6-l7m8-n9o0p1q2r3" message="Contractor #[payload.Name] added" />
+        </when>
+        <when expression="#[payload.Status == 'Removed']">
+          <!-- Perform synchronization logic for removed contractor -->
+          <logger level="INFO" doc:name="Logger" doc:id="g1h2i3j4-k5l6-m7n8-o9p0q1r2" message="Contractor #[payload.Name] removed" />
+        </when>
+        <otherwise>
+          <!-- Handle other status values if needed -->
+          <logger level="INFO" doc:name="Logger" doc:id="h1i2j3k4-l5m6-n7o8-p9q0r1s2" message="Unknown status for contractor #[payload.Name]" />
+        </otherwise>
+      </choice>
+    </foreach>
+  </flow>
+</mule>
